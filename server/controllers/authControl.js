@@ -1,7 +1,7 @@
 const db = require("../database/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-require("dotenv").config();
+
 
 // Controller for user registration
 exports.register = async (req, res) => {
@@ -54,9 +54,8 @@ exports.login = (req, res) => {
     const user = result[0];
     try {
       const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch)
-        return res.status(401).json({ message: "Invalid credentials" });
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+      const token = jwt.sign({ id: user.user_id}, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
       res.cookie("token", token, {
@@ -64,8 +63,8 @@ exports.login = (req, res) => {
         secure: false,
         maxAge: 60 * 60 * 1000,
       });
-
-      res.status(201).json({ message: "Login successfull", token: token });
+    
+      return res.status(201).json({ message: "Login successful", token: token });
     } catch (err) {
         return res.status(500).json({message : err})
     }
