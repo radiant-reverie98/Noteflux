@@ -7,6 +7,7 @@ const authRoute = require('./routes/user_auth')
 const userProfile = require('./routes/userProfile')
 const postRoute = require('./routes/postRoute')
 const commentRoute = require('./routes/commentRoute')
+const cors = require('cors')
 
 // Defining middlewares
 app.use(express.json())
@@ -15,6 +16,10 @@ app.use('/api/auth',authRoute) //Middleware for authorization
 app.use('/api/profile',userProfile) //Middleware for user profile
 app.use('/api/posts',postRoute) //Middleware for posts
 app.use('/api/comment',commentRoute) // Middleware for comments
+app.use(cors({
+  origin: ["http://localhost:5173", "https://noteflux-mu.vercel.app/"],
+  credentials: true
+}));
 
 app.get('/',(req,res)=>{
     res.send(`Server running successfully on port ${port}...`)

@@ -1,6 +1,29 @@
 const db = require("../database/db");
 const cloudinary = require('cloudinary').v2;
 
+
+
+// Fetching all posts
+
+exports.fetchAllPosts = (req, res) => {
+  const query = `
+    SELECT 
+      p.post_id, 
+      p.post_title, 
+      p.created_at, 
+      p.post_img, 
+      u.name AS author_name
+    FROM posts p
+    JOIN users u ON p.user_id = u.user_id
+    ORDER BY p.created_at DESC
+  `;
+
+  db.query(query, (err, result) => {
+    if (err) return res.status(500).json({ message: err.message });
+    return res.status(200).json({ posts: result });
+  });
+};
+
 // Creating posts
 exports.createPost = (req, res) => {
   const { post_title, post_desc, category } = req.body;
