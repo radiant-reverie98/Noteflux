@@ -16,9 +16,9 @@ function Navbar() {
 
           <ul className="hidden md:flex gap-6 text-md font-medium tracking-tighter leading-snug">
             <li>
-              <a href="#home" className="text-[#898989] hover:text-white">
+              <Link to="/" className="text-[#898989] hover:text-white">
                 Home
-              </a>
+              </Link>
             </li>
             <li>
               <a href="#blogs" className="text-[#898989] hover:text-white">
