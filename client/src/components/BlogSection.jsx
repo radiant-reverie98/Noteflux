@@ -7,8 +7,9 @@ function BlogSection() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await API.get("/api/posts"); // not /fetch, we changed that
+        const res = await API.get("/api/posts/"); // not /fetch, we changed that
         setPosts(res.data.posts);
+        console.log(res)
       } catch (err) {
         console.error("Error fetching posts:", err);
       }
@@ -40,7 +41,7 @@ function BlogSection() {
           return (
             <div
               key={post.post_id}
-              className="bg-black p-4 rounded-xl flex flex-col items-start"
+              className="bg-black p-4 rounded-xl flex flex-col items-start cursor-pointer"
             >
               <div className="w-full aspect-square bg-[#1c1c1c] rounded-md overflow-hidden">
                 <img

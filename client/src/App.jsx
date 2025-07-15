@@ -18,7 +18,7 @@ function App() {
           <Route path = "/register" element = {<Register/>}/>
           <Route path = "/login" element = {<Login/>}/>
           <Route path = "/create" element={<CreatePost/>}/>
-          <Route path = "/posts/:id" element={<PostDesc/>}/>
+          {/* <Route path = "/posts/:id" element={<PostDesc/>}/> */}
         </Routes>
       </BrowserRouter>
     </>
