@@ -1,5 +1,6 @@
 import React from 'react'
 import { TypeAnimation } from 'react-type-animation'
+import { Link } from 'react-router-dom'
 
 function HeroSection() {
   return (
@@ -21,9 +22,9 @@ function HeroSection() {
       />
 
       <div className="flex flex-col gap-y-1 md:flex-row md:gap-4">
-        <button className="mt-8 px-6 py-2 bg-white text-black text-md md:text-lg rounded-full font-bold hover:bg-gray-200 cursor-pointer transition">
+        <Link to="/create"><button className="mt-8 px-6 py-2 bg-white text-black text-md md:text-lg rounded-full font-bold hover:bg-gray-200 cursor-pointer transition">
           Start Writing
-        </button>
+        </button></Link>
         <button className="mt-3 md:mt-8 px-6 py-2 bg-[#2b2b2b] text-white text-md md:text-lg rounded-full font-bold cursor-pointer transition">
           Learn more
         </button>

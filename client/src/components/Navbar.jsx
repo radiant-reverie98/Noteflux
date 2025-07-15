@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,9 +10,9 @@ function Navbar() {
       <nav className="flex items-center justify-between px-6 py-4">
         {/* Left: Logo + Desktop Nav */}
         <div className="flex items-center gap-5">
-          <div className="text-2xl font-bold">
+          <Link to="/"><div className="text-2xl font-bold">
             Noteflux<sup className="text-sm">®</sup>
-          </div>
+          </div></Link>
 
           <ul className="hidden md:flex gap-6 text-md font-medium tracking-tighter leading-snug">
             <li>
