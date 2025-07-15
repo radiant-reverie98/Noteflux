@@ -13,7 +13,7 @@ function Navbar() {
             Noteflux<sup className="text-sm">®</sup>
           </div>
 
-          <ul className="hidden md:flex gap-6 text-md font-medium">
+          <ul className="hidden md:flex gap-6 text-md font-medium tracking-tighter leading-snug">
             <li>
               <a href="#home" className="text-[#898989] hover:text-white">
                 Home
