@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser')
 const authRoute = require('./routes/user_auth')
 const userProfile = require('./routes/userProfile')
 const postRoute = require('./routes/postRoute')
+const commentRoute = require('./routes/commentRoute')
 
 // Defining middlewares
 app.use(express.json())
@@ -13,6 +14,7 @@ app.use(cookieParser())
 app.use('/api/auth',authRoute) //Middleware for authorization
 app.use('/api/profile',userProfile) //Middleware for user profile
 app.use('/api/posts',postRoute) //Middleware for posts
+app.use('/api/comment',commentRoute) // Middleware for comments
 
 app.get('/',(req,res)=>{
     res.send(`Server running successfully on port ${port}...`)
