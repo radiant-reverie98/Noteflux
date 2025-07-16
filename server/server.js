@@ -1,32 +1,39 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const mongoose = require('mongoose');
 require('dotenv').config();
-const port = process.env.PORT
-const cookieParser = require('cookie-parser')
-const authRoute = require('./routes/user_auth')
-const userProfile = require('./routes/userProfile')
-const postRoute = require('./routes/postRoute')
-const commentRoute = require('./routes/commentRoute')
-const cors = require('cors')
 
-// Defining middlewares
+const app = express();
+const port = process.env.PORT;
+
+const cookieParser = require('cookie-parser');
+const authRoute = require('./routes/user_auth');
+const userProfile = require('./routes/userProfile');
+const postRoute = require('./routes/postRoute');
+const commentRoute = require('./routes/commentRoute');
+const cors = require('cors');
+
+// MongoDB Atlas connection
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("✅ MongoDB connected successfully"))
+.catch((err) => console.error("❌ MongoDB connection failed:", err));
+
+// Middlewares
 app.use(cors({
-  origin: ["http://localhost:5173", "https://noteflux-mu.vercel.app/"],
+  origin: ["http://localhost:5173", "https://noteflux-mu.vercel.app"],
   credentials: true
 }));
-app.use(express.json())
-app.use(cookieParser())
-app.use('/api/auth',authRoute) //Middleware for authorization
-app.use('/api/profile',userProfile) //Middleware for user profile
-app.use('/api/posts',postRoute) //Middleware for posts
-app.use('/api/comment',commentRoute) // Middleware for comments
+app.use(express.json());
+app.use(cookieParser());
 
+app.use('/api/auth', authRoute);
+app.use('/api/profile', userProfile);
+app.use('/api/posts', postRoute);
+app.use('/api/comment', commentRoute);
 
-app.get('/',(req,res)=>{
-    res.send(`Server running successfully on port ${port}...`)
-})
+app.get('/', (req, res) => {
+  res.send(`Server running successfully on port ${port}...`);
+});
 
-app.listen(port,function(){
-    console.log(`Listening on port ${port}`)
-})
-
+app.listen(port, () => {
+  console.log(`🚀 Listening on http://localhost:${port}`);
+});

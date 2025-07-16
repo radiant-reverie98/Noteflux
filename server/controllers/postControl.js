@@ -1,51 +1,8 @@
-const db = require("../database/db");
-const cloudinary = require('cloudinary').v2;
+const Post = require("../Models/posts");
+const User = require("../Models/users");
+const cloudinary = require("cloudinary").v2;
 
-
-
-// Fetching all posts
-
-exports.fetchAllPosts = (req, res) => {
-  const query = `
-    SELECT 
-      p.post_id, 
-      p.post_title, 
-      p.created_at, 
-      p.post_img, 
-      u.name AS author_name
-    FROM posts p
-    JOIN users u ON p.user_id = u.user_id
-    ORDER BY p.created_at DESC
-  `;
-
-  db.query(query, (err, result) => {
-    if (err) return res.status(500).json({ message: err.message });
-    return res.status(200).json({ posts: result });
-  });
-};
-
-// Creating posts
-exports.createPost = (req, res) => {
-  const { post_title, post_desc, category } = req.body;
-  const post_img = req.file?.path || null;
-  const userId = req.userId;
-  const insertQuery = `INSERT INTO posts (user_id,post_title,post_desc,category,post_img) VALUES (?,?,?,?,?)`;
-  try {
-    db.query(
-      insertQuery,
-      [userId, post_title, post_desc, category, post_img],
-      (err, result) => {
-        if (err) return res.status(500).json({ message: err.message });
-        return res.status(201).json({ message: "Posts created successfully" });
-      }
-    );
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-};
-
-// Utility to extract post_img
-
+//  Utility to extract public ID from Cloudinary URL
 const getPublicIdFromUrl = (url) => {
   if (!url) return null;
   const parts = url.split("/");
@@ -54,66 +11,96 @@ const getPublicIdFromUrl = (url) => {
   return `noteflux/posts/${publicId}`;
 };
 
-// Controller for updating posts
+// 🔍 Fetch All Posts
+exports.fetchAllPosts = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate("userId", "name") // to get author name
+      .sort({ createdAt: -1 });
 
-exports.updatePost = (req, res) => {
-  const { post_title, post_desc, category } = req.body;
-  const post_img = req.file?.path;
-  const post_id = req.params.id;
-  const user_id = req.userId;
-  const fetchQuery = `SELECT * FROM posts WHERE post_id = ? AND user_id = ?`;
-  db.query(fetchQuery, [post_id, user_id], (err, result) => {
-    if (err) return res.status(500).json({ err: err.message });
-    const oldPost = result[0];
-    if (post_img && oldPost.post_img) {
-      const oldPublicId = getPublicIdFromUrl(oldPost.post_img);
-      cloudinary.uploader.destroy(oldPublicId, (error, result) => {
-        if (error) console.error("Failed to delete old image:", error);
-        else console.log("Old image deleted:", result);
-      });
-    }
+    const formattedPosts = posts.map((p) => ({
+      post_id: p._id,
+      post_title: p.postTitle,
+      post_img: p.postImg,
+      created_at: p.createdAt,
+      author_name: p.userId.name
+    }));
 
-    const updatedImage = post_img || oldPost.post_img;
-
-    const updateQuery = `
-      UPDATE posts 
-      SET post_title = ?, post_desc = ?, category = ?, post_img = ? 
-      WHERE post_id = ? AND user_id = ?
-    `;
-
-    db.query(
-      updateQuery,
-      [post_title, post_desc, category, updatedImage, post_id, user_id],
-      (err, result) => {
-        if (err) return res.status(500).json({ message: err.message });
-        res.status(200).json({ message: "Post updated successfully" });
-      }
-    );
-  });
+    res.status(200).json({ posts: formattedPosts });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-// Controller for deleting post
+// Create New Post
+exports.createPost = async (req, res) => {
+  const { post_title, post_desc, category } = req.body;
+  const post_img = req.file?.path || null;
+  const userId = req.userId;
 
-exports.deletePost = (req,res)=>{
-    const post_id = req.params.id
-    const user_id = req.userId
+  try {
+    const newPost = new Post({
+      userId,
+      postTitle: post_title,
+      postDesc: post_desc,
+      category,
+      postImg: post_img
+    });
 
-    const fetchQuery = `SELECT * FROM posts WHERE post_id = ? AND user_id = ?`
-    db.query(fetchQuery,[post_id,user_id],(err,result1)=>{
-        if(err) return res.status(500).json({err:err.message})
-        const oldPost = result1[0]
-        if(oldPost.post_img){
-            const publicPostId = getPublicIdFromUrl(oldPost.post_img)
-            cloudinary.uploader.destroy(publicPostId,(err,result)=>{
-                if(err) console.error("Image upload failed",err)
-                else console.log("Image deleted successfully from cloudinary")
-            })
-        }
+    await newPost.save();
+    res.status(201).json({ message: "Post created successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-        const deleteQuery = `DELETE  FROM posts WHERE post_id = ? AND user_id = ?`
-        db.query(deleteQuery,[post_id,user_id],(err,result)=>{
-            if(err) return res.status(500).json({err : err.message})
-            return res.status(200).json({message : "Post deleted successfully"})
-        })
-    })
-}
+// ✏️ Update Post
+exports.updatePost = async (req, res) => {
+  const { post_title, post_desc, category } = req.body;
+  const post_img = req.file?.path || null;
+  const post_id = req.params.id;
+  const user_id = req.userId;
+
+  try {
+    const oldPost = await Post.findOne({ _id: post_id, userId: user_id });
+    if (!oldPost) return res.status(404).json({ message: "Post not found" });
+
+    // Delete old image if new image is uploaded
+    if (post_img && oldPost.postImg) {
+      const publicId = getPublicIdFromUrl(oldPost.postImg);
+      await cloudinary.uploader.destroy(publicId);
+    }
+
+    oldPost.postTitle = post_title;
+    oldPost.postDesc = post_desc;
+    oldPost.category = category;
+    oldPost.postImg = post_img || oldPost.postImg;
+
+    await oldPost.save();
+    res.status(200).json({ message: "Post updated successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//  Delete Post
+exports.deletePost = async (req, res) => {
+  const post_id = req.params.id;
+  const user_id = req.userId;
+
+  try {
+    const post = await Post.findOne({ _id: post_id, userId: user_id });
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    // Delete image from Cloudinary
+    if (post.postImg) {
+      const publicId = getPublicIdFromUrl(post.postImg);
+      await cloudinary.uploader.destroy(publicId);
+    }
+
+    await Post.deleteOne({ _id: post_id, userId: user_id });
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

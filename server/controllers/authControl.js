@@ -1,83 +1,84 @@
-const db = require("../database/db");
+const User = require("../Models/users");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-
-// Controller for user registration
+// Register Controller
 exports.register = async (req, res) => {
   const { email, username, password } = req.body;
-  const checkQuery = `SELECT * FROM users WHERE username = ?`;
-  db.query(checkQuery, [username], async (err, result) => {
-    if (err) return res.status(500).json("Server error: ", err);
-    else if (result.length > 0)
-      return res.status(400).json({ message: "Username already exists" });
-  });
 
-  // Password Hashing
   try {
-    saltRounds = 10;
+    // Check if username already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    // Hash the password
+    const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    const insertQuery = `INSERT INTO users (email,username,password) VALUES (?,?,?) `;
-    db.query(insertQuery, [email, username, hashedPassword], (err, result) => {
-      if (err) return res.status(500).json({ message: err });
-      const userId = result.insertId;
+    // Create new user
+    const newUser = new User({ email, username, password: hashedPassword });
+    const savedUser = await newUser.save();
 
-      const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-        expiresIn: "1h",
-      });
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-        maxAge: 60 * 60 * 1000,
-      });
-
-      res
-        .status(201)
-        .json({ message: "User registered successfully", token: token });
+    // Generate token
+    const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h"
     });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 60 * 60 * 1000
+    });
+
+    return res
+      .status(201)
+      .json({ message: "User registered successfully", token });
   } catch (err) {
-    res.status(500).json({ message: "Password hashing failed" });
+    return res.status(500).json({ message: "Registration failed", error: err.message });
   }
 };
 
-// Controller for user login
-exports.login = (req, res) => {
+// Login Controller
+exports.login = async (req, res) => {
   const { username, password } = req.body;
 
-  // Check if user exists
-  const query = `SELECT * FROM users WHERE username = ?`;
-  db.query(query, [username], async (err, result) => {
-    if (err) return res.status(500).json({ message: err });
-    if (result.length === 0)
-      return res.status(404).json({ message: "User does not exist" });
-    const user = result[0];
-    try {
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-      const token = jwt.sign({ id: user.user_id}, process.env.JWT_SECRET, {
-        expiresIn: "1h",
-      });
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-        maxAge: 60 * 60 * 1000,
-      });
-    
-      return res.status(201).json({ message: "Login successful", token: token });
-    } catch (err) {
-        return res.status(500).json({message : err})
-    }
-  });
+  try {
+    // Find user by username
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ message: "User does not exist" });
+
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials" });
+
+    // Generate JWT
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h"
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 60 * 60 * 1000
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Login successful", token });
+  } catch (err) {
+    return res.status(500).json({ message: "Login failed", error: err.message });
+  }
 };
 
-// Controller for logout
-
-exports.logout = (req,res)=>{
-    res.clearCookie('token',{
-        httpOnly : true,
-        secure : false,
-        sameSite : "strict",
-    })
-    res.status(200).json({message: "Logged out successfully"})
-}
+// Logout Controller
+exports.logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict"
+  });
+  res.status(200).json({ message: "Logged out successfully" });
+};
