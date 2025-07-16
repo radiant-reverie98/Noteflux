@@ -4,6 +4,7 @@ import Register from './Pages/Register'
 import Login from "./Pages/Login"
 import CreatePost from "./Pages/CreatePost"
 import PostDesc from "./Pages/PostDesc"
+import { UserProvider } from "./utils/UserContext"
 
 
 
@@ -12,6 +13,7 @@ function App() {
 
   return (
     <>
+    <UserProvider>
       <BrowserRouter>
         <Routes>
           <Route path = "/" element = {<LandingPage/>}/>
@@ -21,6 +23,7 @@ function App() {
           {/* <Route path = "/posts/:id" element={<PostDesc/>}/> */}
         </Routes>
       </BrowserRouter>
+      </UserProvider>
     </>
   )
 }

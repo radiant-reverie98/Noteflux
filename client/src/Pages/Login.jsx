@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useContext } from "react";
+import UserContext from "../utils/UserContext"
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const {setUserLogged,setUserId} = useContext(UserContext)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +33,13 @@ function Login() {
         );
         // console.log(res)
         if (res.status === 200) {
+          
+          setUserLogged(true)
+          localStorage.setItem("userLogged","true")
+          setUserId(()=>{
+            // return localStorage.setItem("userId",)
+          })
+        
           navigate("/");
         }
       } catch (err) {
