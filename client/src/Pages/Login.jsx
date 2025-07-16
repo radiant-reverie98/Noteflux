@@ -31,13 +31,14 @@ function Login() {
           { username, password },
           { withCredentials: true }
         );
+        // console.log(res.data.user._id)
         // console.log(res)
         if (res.status === 200) {
           
           setUserLogged(true)
           localStorage.setItem("userLogged","true")
           setUserId(()=>{
-            // return localStorage.setItem("userId",)
+            return localStorage.setItem("userId",res.data.user._id)
           })
         
           navigate("/");

@@ -1,9 +1,24 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import UserContext from "../utils/UserContext";
+import axios from "axios";
 
 function Navbar() {
+  const navigate = useNavigate()
+  const {setUserLogged,userLogged} = useContext(UserContext)
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleLogout = async() => {
+    const res = await axios.post("https://noteflux.onrender.com/api/auth/logout",{},{withCredentials:true})
+    console.log(res)
+    if(res.status === 200){
+      setUserLogged(false)
+      localStorage.removeItem("userLogged")
+      window.location.reload()
+    }
+  }
 
   return (
     <header className="bg-black text-white relative">
@@ -29,6 +44,9 @@ function Navbar() {
               <a href="#about" className="text-[#898989] hover:text-white">
                 Create Post
               </a>
+             {userLogged &&  <button onClick={handleLogout} className="text-[#898989] ml-3 cursor-pointer hover:text-white">
+                Logout
+              </button>}
             </li>
           </ul>
         </div>
@@ -67,6 +85,9 @@ function Navbar() {
         >
           Create Post
         </a>
+        {userLogged &&  <button onClick={handleLogout} className="text-[#898989] hover:text-white">
+                Logout
+              </button>}
       </div>
     </header>
   );
