@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import API from "../utils/axios";
-
+// import API from "../utils/axios";
+import axios from "axios";
 function BlogSection() {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await API.get("/api/posts/"); // not /fetch, we changed that
-        setPosts(res.data.posts);
-        console.log(res)
+        const res = await axios.get("https://noteflux.onrender.com/api/posts/"); // not /fetch, we changed that
+        setPosts(res.data?.posts|| []);
+        console.log(res.data.posts)
+         
       } catch (err) {
         console.error("Error fetching posts:", err);
       }
@@ -37,6 +38,8 @@ function BlogSection() {
               day: "numeric",
             }
           );
+         
+
 
           return (
             <div
