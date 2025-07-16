@@ -1,16 +1,37 @@
-const mysql = require('mysql2')
 require('dotenv').config();
+const mysql = require('mysql2');
 
-const db = mysql.createConnection({
-    host : process.env.DB_HOST,
-    user : process.env.DB_USER,
-    password : process.env.DB_PASSWORD,
-    database : process.env.DB_NAME
-})
+// Create connection pool (same config as before)
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,       // Prevents idle disconnects
+  keepAliveInitialDelay: 0,   // Immediately enable keep-alive
+});
 
-db.connect((err)=>{
-    if(err) console.error("Database connection error: ",err.message)
-    else console.log("Successfully connected to database")
-})
+// Test connection (optional)
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error('DB Connection Failed:', err.message);
+  } else {
+    console.log('DB Connected');
+    connection.release();
+  }
+});
 
-module.exports = db
+// Monkey-patch to auto-handle connection errors
+db.on('error', (err) => {
+  if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+    console.log('Database connection was closed.');
+  } else {
+    console.error('Database error:', err);
+  }
+});
+
+// Export the original pool (unchanged)
+module.exports = db;

@@ -1,7 +1,23 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 
 function Register() {
+  const [name,setName] = useState("")
+  const [email,setEmail] = useState("")
+  const [username,setUsername] = useState("")
+  const [password,setPassword] = useState("")
+  const [err,setError] = useState("")
+
+  const formValidation = (err) => {
+    if(!name || !email || !username || !password){
+      setError("Field is required")
+    }
+    if(password.length < 8){
+      setError
+    }
+  }
+
   return (
     <>
         <Link to="/"><div className="text-2xl font-bold px-6 py-4 bg-black text-white">
@@ -25,7 +41,7 @@ function Register() {
           <form className="w-full max-w-xs space-y-5">
             <div className="text-left space-y-1">
               <label className="text-sm text-[#898989]">Name</label>
-              <input
+              <input onChange={(e)=>e.target.value}
                 type="text"
                 placeholder="Jane Smith"
                 className="w-full px-4 py-3 bg-[#1c1c1c] text-white rounded-md focus:outline-none"
@@ -34,7 +50,7 @@ function Register() {
 
             <div className="text-left space-y-1">
               <label className="text-sm text-[#898989]">Email</label>
-              <input
+              <input onChange={(e)=>e.target.value}
                 type="email"
                 placeholder="jane@example.com"
                 className="w-full px-4 py-3 bg-[#1c1c1c] text-white rounded-md focus:outline-none"
@@ -43,7 +59,7 @@ function Register() {
 
             <div className="text-left space-y-1">
               <label className="text-sm text-[#898989]">Username</label>
-              <input
+              <input onChange={(e)=>e.target.value}
                 type="text"
                 placeholder="janesmith"
                 className="w-full px-4 py-3 bg-[#1c1c1c] text-white rounded-md focus:outline-none"
@@ -52,7 +68,7 @@ function Register() {
 
             <div className="text-left space-y-1">
               <label className="text-sm text-[#898989]">Password</label>
-              <input
+              <input onChange={(e)=>e.target.value}
                 type="password"
                 placeholder="Your password"
                 className="w-full px-4 py-3 bg-[#1c1c1c] text-white rounded-md focus:outline-none"
