@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-// import API from "../utils/axios";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
 function BlogSection() {
   const [posts, setPosts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await axios.get("https://noteflux.onrender.com/api/posts/"); // not /fetch, we changed that
-        setPosts(res.data?.posts|| []);
-        console.log(res.data.posts)
-         
+        const res = await axios.get("https://noteflux.onrender.com/api/posts/");
+        setPosts(res.data?.posts || []);
       } catch (err) {
         console.error("Error fetching posts:", err);
       }
@@ -30,21 +30,17 @@ function BlogSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-10">
         {posts.map((post) => {
-          const formattedDate = new Date(post.created_at).toLocaleDateString(
-            "en-IN",
-            {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            }
-          );
-         
-
+          const formattedDate = new Date(post.created_at).toLocaleDateString("en-IN", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
 
           return (
             <div
               key={post.post_id}
               className="bg-black p-4 rounded-xl flex flex-col items-start cursor-pointer"
+              onClick={() => navigate(`/posts/${post.post_id}`)}
             >
               <div className="w-full aspect-square bg-[#1c1c1c] rounded-md overflow-hidden">
                 <img

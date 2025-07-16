@@ -102,3 +102,30 @@ exports.deletePost = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+exports.getPostById = async (req, res) => {
+  const postId = req.params.id;
+
+  try {
+    const post = await Post.findById(postId)
+      .populate("userId", "name") // populate only 'name' from user
+      .exec();
+
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const postData = {
+      post_id: post._id,
+      post_title: post.postTitle,
+      post_desc: post.postDesc,
+      post_img: post.post_img,
+      created_at: post.createdAt,
+      author_name: post.userId.name,
+      author_id: post.userId._id,
+      category: post.category,
+    };
+
+    res.status(200).json({ post: postData });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

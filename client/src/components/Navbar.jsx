@@ -6,7 +6,7 @@ import UserContext from "../utils/UserContext";
 import axios from "axios";
 
 function Navbar() {
-  const navigate = useNavigate()
+  
   const {setUserLogged,userLogged} = useContext(UserContext)
   const [isOpen, setIsOpen] = useState(false);
 
