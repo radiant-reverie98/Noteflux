@@ -1,41 +1,64 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import axios from "axios";
 
 function PostDesc() {
   const { id } = useParams();
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    const fetchPostDetails = async () => {
+      try {
+        const res = await axios.get(`https://noteflux.onrender.com/api/posts/${id}`);
+        setPost(res.data.post || {});
+      } catch (err) {
+        console.error("Failed to load post:", err);
+      }
+    };
+
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(`https://noteflux.onrender.com/api/comments/${id}`);
+        setComments(res.data.comments || []);
+      } catch (err) {
+        console.error("Failed to load comments:", err);
+      }
+    };
+
+    fetchPostDetails();
+    fetchComments();
+  }, [id]);
+
+  if (!post) return null;
+
+  const formattedDate = new Date(post.created_at).toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 
   return (
     <>
-      {/* Navbar */}
       <Navbar />
 
-      {/* Blog Description + Comment */}
       <main className="w-full min-h-screen bg-black text-white px-4 md:px-6 py-20 flex flex-col items-center md:items-start justify-start space-y-16">
-        {/* Blog Image */}
         <div className="w-full flex justify-center">
           <img
-            src="https://media.istockphoto.com/id/530907415/photo/runner-breaking-finish-line-tape.jpg?s=612x612&w=0&k=20&c=IgGh3HhzGiJtxUbSYk8unTvKnK3Wo0m6yuolfSRZAOg="
+            src={post.post_img}
             className="w-full max-w-xs sm:max-w-sm md:max-w-[960px] md:h-[600px] rounded-lg object-cover"
-            alt="Blog banner"
+            alt={post.post_title}
           />
         </div>
 
-        {/* Blog Description */}
         <div className="w-full md:max-w-3xl md:px-30">
           <h2 className="text-lg font-bold mb-4">
-            By Tejendra Singh - July 10, 2025
+            By {post.author_name} - {formattedDate}
           </h2>
-          <p className="text-[#999999] leading-snug">
-            Craft your story and share something new with the Noteflux
-            community. Enter a compelling post title, a detailed description,
-            and include an image to make your post stand out. Choose the
-            appropriate category from the dropdown to help readers discover your
-            work more easily.
-          </p>
+          <p className="text-[#999999] leading-snug">{post.post_desc}</p>
         </div>
 
-        {/* Comment Form */}
         <form className="w-full md:max-w-3xl md:px-30 flex flex-col gap-4">
           <label htmlFor="comment" className="text-sm text-[#898989]">
             Leave a comment
@@ -54,18 +77,24 @@ function PostDesc() {
           </button>
         </form>
 
-        {/* Recent Comments */}
         <div className="w-full md:max-w-3xl md:px-30 flex flex-col gap-4">
           <h3 className="text-xl text-white font-bold">Recent Comments</h3>
           <div className="text-sm text-[#898989] font-semibold leading-relaxed space-y-3">
-            <p>
-              <span className="font-semibold text-white">Alex</span> · July 10,
-              2025, 09:07 – Great article! This strategy really helped me focus.
-            </p>
-            <p>
-              <span className="font-semibold text-white">Priya</span> · July 10,
-              2025, 09:12 – I love using Noteflux. It’s streamlined my workflow!
-            </p>
+            {comments.map((comment) => {
+              const commentDate = new Date(comment.createdAt).toLocaleString("en-IN", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              return (
+                <p key={comment._id}>
+                  <span className="font-semibold text-white">{comment.name}</span> · {commentDate} – {comment.comment}
+                </p>
+              );
+            })}
           </div>
         </div>
       </main>

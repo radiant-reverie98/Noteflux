@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 
 // Register Controller
 exports.register = async (req, res) => {
-  const { email, username, password } = req.body;
+  const { name,email, username, password } = req.body;
 
   try {
     // Check if username already exists
@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Create new user
-    const newUser = new User({ email, username, password: hashedPassword });
+    const newUser = new User({name, email, username, password: hashedPassword });
     const savedUser = await newUser.save();
 
     // Generate token

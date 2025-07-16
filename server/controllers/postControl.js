@@ -108,11 +108,12 @@ exports.getPostById = async (req, res) => {
 
   try {
     const post = await Post.findById(postId)
-      .populate("userId", "name") // populate only 'name' from user
+      .populate("userId") // populate only 'name' from user
       .exec();
 
     if (!post) return res.status(404).json({ message: "Post not found" });
-
+    // console.log("Populated post.userId:", post.userId);
+    console.log("Populated userId:", post.userId);
     const postData = {
       post_id: post._id,
       post_title: post.postTitle,
