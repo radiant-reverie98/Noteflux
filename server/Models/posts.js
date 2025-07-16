@@ -4,7 +4,7 @@ const postSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   postTitle: String,
   postDesc: String,
-  postImg: String,
+  post_img: String,
   category: String,
   createdAt: { type: Date, default: Date.now }
 });
