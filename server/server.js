@@ -7,7 +7,7 @@ const port = process.env.PORT;
 
 const cookieParser = require('cookie-parser');
 const authRoute = require('./routes/user_auth');
-const userProfile = require('./routes/userProfile');
+
 const postRoute = require('./routes/postRoute');
 const commentRoute = require('./routes/commentRoute');
 const cors = require('cors');
@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api/auth', authRoute);
-app.use('/api/profile', userProfile);
+
 app.use('/api/posts', postRoute);
 app.use('/api/comment', commentRoute);
 
