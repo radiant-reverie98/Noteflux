@@ -29,6 +29,7 @@ app.use(cors({
   credentials: true, // Required for cookies
   exposedHeaders: ["set-cookie"] // Ensure cookies are exposed to frontend
 }));
+app.options('*', cors());
 app.use(express.json());
 app.use(cookieParser());
 
