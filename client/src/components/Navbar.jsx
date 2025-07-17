@@ -16,6 +16,7 @@ function Navbar() {
     if(res.status === 200){
       setUserLogged(false)
       localStorage.removeItem("userLogged")
+      localStorage.removeItem("token")
       window.location.reload()
     }
   }

@@ -37,6 +37,7 @@ function Login() {
           
           setUserLogged(true)
           localStorage.setItem("userLogged","true")
+          // localStorage.setItem("token",res.data.token)
           setUserId(()=>{
             return localStorage.setItem("userId",res.data.user._id)
           })

@@ -7,6 +7,7 @@ function PostDesc() {
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
     const fetchPostDetails = async () => {
@@ -20,8 +21,8 @@ function PostDesc() {
 
     const fetchComments = async () => {
       try {
-        const res = await axios.get(`https://noteflux.onrender.com/api/comments/${id}`);
-        setComments(res.data.comments || []);
+        const res = await axios.get(`https://noteflux.onrender.com/api/comment/fetch/${id}`);
+        setComments(res.data.content || []);
       } catch (err) {
         console.error("Failed to load comments:", err);
       }
@@ -30,6 +31,42 @@ function PostDesc() {
     fetchPostDetails();
     fetchComments();
   }, [id]);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login first to leave a comment.");
+      return;
+    }
+
+    if (!commentText.trim()) {
+      alert("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `https://noteflux.onrender.com/api/comment/create/${id}`,
+        { content: commentText },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setCommentText(""); // Clear input
+      // Fetch updated comments
+      const res = await axios.get(`https://noteflux.onrender.com/api/comment/fetch/${id}`);
+      console.log(token)
+      setComments(res.data.content || []);
+    } catch (err) {
+      console.error("Failed to post comment:", err);
+      alert("Something went wrong while posting the comment.");
+    }
+  };
 
   if (!post) return null;
 
@@ -44,6 +81,7 @@ function PostDesc() {
       <Navbar />
 
       <main className="w-full min-h-screen bg-black text-white px-4 md:px-6 py-20 flex flex-col items-center md:items-start justify-start space-y-16">
+        {/* Post Image */}
         <div className="w-full flex justify-center">
           <img
             src={post.post_img}
@@ -52,6 +90,7 @@ function PostDesc() {
           />
         </div>
 
+        {/* Post Description */}
         <div className="w-full md:max-w-3xl md:px-30">
           <h2 className="text-lg font-bold mb-4">
             By {post.author_name} - {formattedDate}
@@ -59,13 +98,19 @@ function PostDesc() {
           <p className="text-[#999999] leading-snug">{post.post_desc}</p>
         </div>
 
-        <form className="w-full md:max-w-3xl md:px-30 flex flex-col gap-4">
+        {/* Comment Form */}
+        <form
+          onSubmit={handleCommentSubmit}
+          className="w-full md:max-w-3xl md:px-30 flex flex-col gap-4"
+        >
           <label htmlFor="comment" className="text-sm text-[#898989]">
             Leave a comment
           </label>
           <textarea
             id="comment"
             rows="4"
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
             placeholder="Write your thoughts here..."
             className="w-full px-4 py-3 bg-[#1c1c1c] text-white rounded-md focus:outline-none resize-none"
           />
@@ -77,11 +122,12 @@ function PostDesc() {
           </button>
         </form>
 
+        {/* Comments Section */}
         <div className="w-full md:max-w-3xl md:px-30 flex flex-col gap-4">
           <h3 className="text-xl text-white font-bold">Recent Comments</h3>
           <div className="text-sm text-[#898989] font-semibold leading-relaxed space-y-3">
-            {comments.map((comment) => {
-              const commentDate = new Date(comment.createdAt).toLocaleString("en-IN", {
+            {comments.map((comment, index) => {
+              const commentDate = new Date(comment.created_at).toLocaleString("en-IN", {
                 year: "numeric",
                 month: "short",
                 day: "numeric",
@@ -90,8 +136,8 @@ function PostDesc() {
               });
 
               return (
-                <p key={comment._id}>
-                  <span className="font-semibold text-white">{comment.name}</span> · {commentDate} – {comment.comment}
+                <p key={index}>
+                  <span className="font-semibold text-white">{comment.name}</span> · {commentDate} – {comment.content}
                 </p>
               );
             })}
