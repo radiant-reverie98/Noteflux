@@ -2,72 +2,38 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
+const app = express();
+const port = process.env.PORT;
 
+const cookieParser = require('cookie-parser');
 const authRoute = require('./routes/user_auth');
+
 const postRoute = require('./routes/postRoute');
 const commentRoute = require('./routes/commentRoute');
+const cors = require('cors');
 
-const app = express();
-const port = process.env.PORT || 5000;
+// MongoDB Atlas connection
+mongoose.connect(process.env.MONGO_URI)
+.then(() => console.log("✅ MongoDB connected successfully"))
+.catch((err) => console.error("❌ MongoDB connection failed:", err));
 
-// ✅ Allowed origins for frontend
-const allowedOrigins = [
-  "http://localhost:5173",                // local dev
-  "https://noteflux-mu.vercel.app",       // vercel frontend
-];
-
-// ✅ CORS setup with credentials support
+// Middlewares
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: ["http://localhost:5173", "https://noteflux-mu.vercel.app"],
   credentials: true,
-  exposedHeaders: ["set-cookie"],
 }));
-
-// ✅ Ensure preflight (OPTIONS) requests support credentials
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
-
-//  Middleware
 app.use(express.json());
 app.use(cookieParser());
 
-//  Routes
 app.use('/api/auth', authRoute);
+
 app.use('/api/posts', postRoute);
 app.use('/api/comment', commentRoute);
 
-//  Root route
 app.get('/', (req, res) => {
-  res.send(`🚀 Noteflux API running on port ${port}`);
+  res.send(`Server running successfully on port ${port}...`);
 });
 
-//  Connect to MongoDB and start server
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => {
-    console.log("✅ MongoDB connected successfully");
-    app.listen(port, () => {
-      console.log(`🚀 Server listening at http://localhost:${port}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-  });
+app.listen(port, () => {
+  console.log(`🚀 Listening on http://localhost:${port}`);
+});
