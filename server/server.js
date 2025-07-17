@@ -19,8 +19,15 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Middlewares
 app.use(cors({
-  origin: ["http://localhost:5173", "https://noteflux-mu.vercel.app"],
-  credentials: true,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true, // Required for cookies
+  exposedHeaders: ["set-cookie"] // Ensure cookies are exposed to frontend
 }));
 app.use(express.json());
 app.use(cookieParser());
